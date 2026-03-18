@@ -1,0 +1,54 @@
+name: Node.js WalletChainAlertBot CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Set up Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      # Install dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Lint, build, and test (customize as needed)
+      - name: Run Lint (if available)
+        run: |
+          if [ -f package.json ]; then
+            npm run lint || echo "Lint not configured";
+          fi
+      - name: Run Build (if available)
+        run: |
+          if [ -f package.json ]; then
+            npm run build || echo "Build not configured";
+          fi
+      - name: Run Tests (if available)
+        run: |
+          if [ -f package.json ]; then
+            npm test || echo "No test script configured";
+          fi
+
+      # Optional: Deploy to Render (replace with your service ID & key)
+      - name: Deploy to Render
+        if: github.ref == 'refs/heads/main'
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -X POST https://api.render.com/v1/services/YOUR_RENDER_SERVICE_ID/deploys \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"clearCache": true}'
